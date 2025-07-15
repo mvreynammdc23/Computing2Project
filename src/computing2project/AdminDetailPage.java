@@ -233,9 +233,9 @@ public class AdminDetailPage extends javax.swing.JFrame {
         }
     }
     
-    
-    
-    
+    public void refreshEmployeeTable() {
+        loadEmployeeDataFromCSV("src/DataFiles/employees.csv");
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -344,13 +344,13 @@ public class AdminDetailPage extends javax.swing.JFrame {
 
         payrollAttendanceListTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Date", "Time In", "Time Out"
             }
         ));
         payrollAttendanceListPanel.setViewportView(payrollAttendanceListTable);

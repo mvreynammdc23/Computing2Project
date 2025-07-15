@@ -26,8 +26,8 @@ public class AddEmployeePage extends javax.swing.JFrame {
     private AdminDetailPage adminDetailPage;
     
     public AddEmployeePage(AdminDetailPage adminDetailPage) {
-        initComponents();
         this.adminDetailPage = adminDetailPage;
+        initComponents();
 
         // Auto-format patterns
         addAutoDashFormatter(sssNumberField, "##-#######-#");
@@ -64,7 +64,7 @@ public class AddEmployeePage extends javax.swing.JFrame {
     
     public boolean isBirthdayValid(String birthday) {
         try {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MM-dd-yyyy");
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MM dd yyyy");
             sdf.setLenient(false); // Makes sure invalid dates like 02-30-2023 are caught
             sdf.parse(birthday);   // Try parsing
             return true;
@@ -135,7 +135,7 @@ public class AddEmployeePage extends javax.swing.JFrame {
         String birthday = birthdayField.getText().trim();
         if (!isBirthdayValid(birthday)) {
             JOptionPane.showMessageDialog(this,
-                "Birthday must follow MM-DD-YYYY and be a valid date.",
+                "Birthday must follow MM dd yyyy and be a valid date.",
                 "Invalid Birthday Format",
                 JOptionPane.WARNING_MESSAGE);
             return false;
@@ -769,48 +769,45 @@ public class AddEmployeePage extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (!areFieldsValid()) return;
 
-            String[] newEmployeeData = {
-                employeeIDField.getText().trim(),
-                portalPasswordField.getText().trim(),
-                lastNameField.getText().trim(),
-                firstNameField.getText().trim(),
-                birthdayField.getText().trim(),
-                addressTextArea.getText().trim(),
-                phoneNumberField.getText().trim(),
-                sssNumberField.getText().trim(),
-                philhealthNumberField.getText().trim(),
-                tinField.getText().trim(),
-                pagibigNumberField.getText().trim(),
-                statusField.getText().trim(),
-                positionField.getText().trim(),
-                immediateSupervisorField.getText().trim(),
-                basicSalaryField.getText().trim(),
-                riceSubsidyField.getText().trim(),
-                phoneAllowanceField.getText().trim(),
-                clothingAllowanceField.getText().trim(),
-                grossSemiMonthlyRateField.getText().trim(),
-                hourlyRateField.getText().trim()
-            };
+        String[] newEmployeeData = {
+            employeeIDField.getText().trim(),
+            portalPasswordField.getText().trim(),
+            lastNameField.getText().trim(),
+            firstNameField.getText().trim(),
+            birthdayField.getText().trim(),
+            addressTextArea.getText().trim(),
+            phoneNumberField.getText().trim(),
+            sssNumberField.getText().trim(),
+            philhealthNumberField.getText().trim(),
+            tinField.getText().trim(),
+            pagibigNumberField.getText().trim(),
+            statusField.getText().trim(),
+            positionField.getText().trim(),
+            immediateSupervisorField.getText().trim(),
+            basicSalaryField.getText().trim(),
+            riceSubsidyField.getText().trim(),
+            phoneAllowanceField.getText().trim(),
+            clothingAllowanceField.getText().trim(),
+            grossSemiMonthlyRateField.getText().trim(),
+            hourlyRateField.getText().trim()
+        };
 
-            File csvFile = new File("src/DataFiles/employees.csv");
+        File csvFile = new File("src/DataFiles/employees.csv");
 
-            try (
-                CSVWriter writer = new CSVWriter(new FileWriter(csvFile, true))  // append = true
-            ) {
-                writer.writeNext(newEmployeeData);
-                JOptionPane.showMessageDialog(this, "Employee added successfully!");
+        try (CSVWriter writer = new CSVWriter(new FileWriter(csvFile, true))) {
+            writer.writeNext(newEmployeeData);
+            writer.flush();
 
-                // Refresh table if AdminDetailPage was passed
-                if (adminDetailPage != null) {
-                    adminDetailPage.loadEmployeeDataFromCSV("src/DataFiles/employees.csv");
-                }
+            JOptionPane.showMessageDialog(this, "Employee added successfully!");
 
-                this.dispose();
-
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(this, "Error saving employee: " + e.getMessage(),
-                    "File Error", JOptionPane.ERROR_MESSAGE);
+            if (adminDetailPage != null) {
+                adminDetailPage.refreshEmployeeTable(); // or loadEmployeeDataFromCSV(...)
             }
+
+            this.dispose();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error saving employee: " + e.getMessage(), "File Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_SaveButtonActionPerformed
 
     /**

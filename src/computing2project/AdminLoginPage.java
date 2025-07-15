@@ -4,7 +4,8 @@
  */
 package computing2project;
 
-import java.io.BufferedReader;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import java.io.FileReader;
 import java.io.IOException;
 import javax.swing.JOptionPane;
@@ -76,6 +77,7 @@ public class AdminLoginPage extends javax.swing.JFrame {
         LogInButton.setFont(new java.awt.Font("Arial Rounded MT Bold", 0, 24)); // NOI18N
         LogInButton.setForeground(new java.awt.Color(255, 255, 255));
         LogInButton.setText("Log In");
+        LogInButton.setBorderPainted(false);
         LogInButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 LogInButtonActionPerformed(evt);
@@ -162,25 +164,29 @@ public class AdminLoginPage extends javax.swing.JFrame {
             return;
         }
 
-        if (validateCredentials(adminId, portalpassword)) {
-        JOptionPane.showMessageDialog(this, "Log in successful");
-
-            try {
-                // Pass employeeNumber to the dashboard if needed
-                AdminDetailPage adminDetail = new AdminDetailPage();
-                adminDetail.setVisible(true);
-
-                // Close the current login window
-                this.dispose();
-            } 
-            catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Failed to start application: " + e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        try {
+            if (validateCredentials(adminId, portalpassword)) {
+                JOptionPane.showMessageDialog(this, "Log in successful");
+                
+                try {
+                    // Pass employeeNumber to the dashboard if needed
+                    AdminDetailPage adminDetail = new AdminDetailPage();
+                    adminDetail.setVisible(true);
+                    
+                    // Close the current login window
+                    this.dispose();
+                }
+                catch (CsvValidationException e) {
+                    JOptionPane.showMessageDialog(this, "Failed to start application: " + e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                }
+                
             }
-
-        } 
-        else {
-        JOptionPane.showMessageDialog(this, "Incorrect employee number or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            else {
+                JOptionPane.showMessageDialog(this, "Incorrect employee number or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (CsvValidationException ex) {
+            System.getLogger(AdminLoginPage.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }//GEN-LAST:event_LogInButtonActionPerformed
 
@@ -200,21 +206,26 @@ public class AdminLoginPage extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_showPasswordCheckboxActionPerformed
 
-    private boolean validateCredentials(String adminId, String portalpassword) {
-    try (BufferedReader reader = new BufferedReader(new FileReader("src/DataFiles/admins.csv"))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(",");
-            if (parts.length >= 19 && parts[0].equals(adminId) && parts[1].equals(portalpassword)) {
-                // Credentials match
-                return true;
+    private boolean validateCredentials(String adminId, String portalPassword) throws CsvValidationException {
+        try (CSVReader reader = new CSVReader(new FileReader("src/DataFiles/admins.csv"))) {
+            String[] row;
+
+            while ((row = reader.readNext()) != null) {
+                if (row.length >= 2) {
+                    String id = row[0].trim();
+                    String password = row[1].trim();
+
+                    if (id.equals(adminId.trim()) && password.equals(portalPassword.trim())) {
+                        return true; // ✅ Credentials match
+                    }
+                }
             }
+        } catch (IOException | CsvValidationException ex) {
+            JOptionPane.showMessageDialog(null, "Error occurred while logging in. Please try again later.");
+            ex.printStackTrace();
         }
-    } catch (IOException ex) {
-        JOptionPane.showMessageDialog(null, "Error occurred while logging in. Please try again later.");
-        ex.printStackTrace();
-    }
-    return false;
+
+        return false; // ❌ No match found
     }
     /**
      * @param args the command line arguments

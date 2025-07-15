@@ -4,6 +4,8 @@
  */
 package computing2project;
 
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -183,43 +185,54 @@ public class EmployeeLoginPage extends javax.swing.JFrame {
             return;
         }
 
-        if (validateCredentials(employeeId, portalpassword)) {
-        JOptionPane.showMessageDialog(this, "Log in successful");
-
-            try {
-                // Pass employeeNumber to the dashboard if needed
-                EmployeeDetailPage employeeDetail = new EmployeeDetailPage(employeeId);
-                employeeDetail.setVisible(true);
-
-                // Close the current login window
-                this.dispose();
-            } 
-            catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Failed to start application: " + e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        try {
+            if (validateCredentials(employeeId, portalpassword)) {
+                JOptionPane.showMessageDialog(this, "Log in successful");
+                
+                try {
+                    // Pass employeeNumber to the dashboard if needed
+                    EmployeeDetailPage employeeDetail = new EmployeeDetailPage(employeeId);
+                    employeeDetail.setVisible(true);
+                    
+                    // Close the current login window
+                    this.dispose();
+                }
+                catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, "Failed to start application: " + e.getMessage(), "Startup Error", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                }
+                
             }
-
-        } 
-        else {
-        JOptionPane.showMessageDialog(this, "Incorrect employee number or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            else {
+                JOptionPane.showMessageDialog(this, "Incorrect employee number or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (CsvValidationException ex) {
+            System.getLogger(EmployeeLoginPage.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }//GEN-LAST:event_LogInButtonActionPerformed
     
-    private boolean validateCredentials(String employeeNumber, String portalpassword) {
-    try (BufferedReader reader = new BufferedReader(new FileReader("src/DataFiles/employees.csv"))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(",");
-            if (parts.length >= 12 && parts[0].equals(employeeNumber) && parts[1].equals(portalpassword)) {
-                // Credentials match
-                return true;
+    private boolean validateCredentials(String employeeNumber, String portalpassword) throws CsvValidationException {
+        String csvPath = "src/DataFiles/employees.csv";
+
+        try (CSVReader reader = new CSVReader(new FileReader(csvPath))) {
+            String[] row;
+
+            while ((row = reader.readNext()) != null) {
+                if (row.length >= 19) {
+                    String csvEmployeeNumber = row[0].trim();
+                    String csvPassword = row[1].trim();
+
+                    if (csvEmployeeNumber.equals(employeeNumber.trim()) && csvPassword.equals(portalpassword.trim())) {
+                        return true;
+                    }
+                }
             }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Error occurred while logging in. Please try again later.");
+            ex.printStackTrace();
         }
-    } catch (IOException ex) {
-        JOptionPane.showMessageDialog(null, "Error occurred while logging in. Please try again later.");
-        ex.printStackTrace();
-    }
-    return false;
+
+        return false;
     }
     /**
      * @param args the command line arguments
